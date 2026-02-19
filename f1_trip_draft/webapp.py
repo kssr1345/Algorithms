@@ -179,6 +179,9 @@ def apply_live_context(trip: TripCandidate) -> tuple[TripCandidate, dict[str, An
         "city": trip.city,
         "holiday": holiday,
         "weather": weather,
+        "holiday_live": holiday is not None,
+        "weather_live": weather is not None,
+        "fetched_at_utc": datetime.now(timezone.utc).isoformat(),
         "live_sources": {
             "holiday_api": "https://date.nager.at",
             "weather_api": "https://open-meteo.com",
@@ -317,6 +320,13 @@ class Handler(BaseHTTPRequestHandler):
 
             recommendations = recommend_trips(user, live_trips)
             serialized = serialize_recommendations(recommendations)
+            city_context = context.get("city_context", [])
+            context["live_data_summary"] = {
+                "holiday_live_cities": sum(1 for c in city_context if c.get("holiday_live")),
+                "weather_live_cities": sum(1 for c in city_context if c.get("weather_live")),
+                "total_cities": len(city_context),
+                "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+            }
             self.db.save_recommendation(draft_id, serialized, context)
             return self._send_json(
                 {"draft_id": draft_id, "context": context, "recommendations": serialized},

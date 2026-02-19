@@ -69,3 +69,13 @@ Tables:
 
 Python currently handles API + DB + orchestration.
 If/when traffic grows, move only heavy scoring/ranking loops into C++ and call from Python, while keeping the web backend in Python.
+
+
+## Real-time data answer
+
+Yes — recommendation generation attempts to fetch **real-time** public holiday and weather data each run:
+- Holidays: `date.nager.at`
+- Weather: `open-meteo.com`
+
+In the UI, the **Live data status** panel shows per-city live availability and generation timestamp.
+If an API call fails (network/source issue), the app falls back to defaults and marks that city as unavailable for that source.
