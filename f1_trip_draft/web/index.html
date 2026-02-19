@@ -3,61 +3,108 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>F1 Travel Tracker Draft</title>
+  <title>F1 Travel Tracker</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 0; background: #0f172a; color: #e2e8f0; }
-    .container { max-width: 900px; margin: 0 auto; padding: 24px; }
-    .card { background: #1e293b; border-radius: 10px; padding: 18px; margin-bottom: 16px; }
-    h1 { margin-top: 0; }
+    .container { max-width: 980px; margin: 0 auto; padding: 24px; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    .card { background: #1e293b; border-radius: 10px; padding: 18px; }
+    h1, h2, h3 { margin-top: 0; }
     label { display: block; margin: 10px 0 4px; }
-    input, select, button { padding: 10px; border-radius: 8px; border: 1px solid #334155; width: 100%; }
+    input, select, button { padding: 10px; border-radius: 8px; border: 1px solid #334155; width: 100%; box-sizing: border-box; }
     button { background: #ef4444; color: white; font-weight: bold; cursor: pointer; margin-top: 12px; }
+    button.secondary { background: #334155; }
     .result { border-left: 4px solid #ef4444; padding-left: 12px; margin-bottom: 14px; }
     .muted { color: #94a3b8; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #334155; margin-right: 6px; font-size: 12px; }
+    ul { padding-left: 20px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🏎️ F1 Travel Tracker (Website Draft)</h1>
-    <p class="muted">Fill in your details, save a draft, and generate recommendations.</p>
+    <h1>🏎️ F1 Travel Tracker</h1>
+    <p class="muted">Phase 2 + 3 draft: website workflow, saved drafts dashboard, and live holiday/weather enrichment.</p>
 
-    <div class="card">
-      <h2>Create trip draft</h2>
-      <label>Home airport</label>
-      <input id="home_airport" value="LHR" />
+    <div class="grid">
+      <div class="card">
+        <h2>1) Create trip draft</h2>
+        <div class="row">
+          <div>
+            <label>Home airport</label>
+            <input id="home_airport" value="LHR" />
+          </div>
+          <div>
+            <label>Budget (EUR)</label>
+            <input id="budget_eur" type="number" value="1200" />
+          </div>
+        </div>
 
-      <label>Budget (EUR)</label>
-      <input id="budget_eur" type="number" value="1200" />
+        <div class="row">
+          <div>
+            <label>Travel style</label>
+            <select id="style">
+              <option value="budget">budget</option>
+              <option value="balanced" selected>balanced</option>
+              <option value="premium">premium</option>
+            </select>
+          </div>
+          <div>
+            <label>Weather preference</label>
+            <select id="weather_preference">
+              <option value="cool">cool</option>
+              <option value="mixed" selected>mixed</option>
+              <option value="warm">warm</option>
+            </select>
+          </div>
+        </div>
 
-      <label>Travel style</label>
-      <select id="style">
-        <option value="budget">budget</option>
-        <option value="balanced" selected>balanced</option>
-        <option value="premium">premium</option>
-      </select>
+        <button id="generate">Save Draft + Generate</button>
+        <p id="status" class="muted"></p>
+      </div>
 
-      <label>Weather preference</label>
-      <select id="weather_preference">
-        <option value="cool">cool</option>
-        <option value="mixed" selected>mixed</option>
-        <option value="warm">warm</option>
-      </select>
+      <div class="card">
+        <h2>2) Saved drafts</h2>
+        <p class="muted">Click any draft to reload its latest recommendations.</p>
+        <button id="refreshDrafts" class="secondary">Refresh drafts list</button>
+        <ul id="draftsList" class="muted"></ul>
+      </div>
 
-      <button id="generate">Save Draft + Generate</button>
-      <p id="status" class="muted"></p>
-    </div>
-
-    <div class="card">
-      <h2>Recommendations</h2>
-      <div id="results" class="muted">No recommendations yet.</div>
+      <div class="card">
+        <h2>3) Recommendations</h2>
+        <div id="context" class="muted"></div>
+        <div id="results" class="muted">No recommendations yet.</div>
+      </div>
     </div>
   </div>
 
   <script>
     const statusNode = document.getElementById('status');
     const resultsNode = document.getElementById('results');
+    const draftsListNode = document.getElementById('draftsList');
+    const contextNode = document.getElementById('context');
+
+    function totalCost(item) {
+      return item.trip.flight_cost + item.trip.hotel_cost + item.trip.local_cost;
+    }
+
+    function renderContext(contextPayload) {
+      const cityContext = contextPayload?.city_context || [];
+      if (!cityContext.length) {
+        contextNode.innerHTML = '<p class="muted">No live context attached.</p>';
+        return;
+      }
+
+      contextNode.innerHTML = cityContext.map((c) => {
+        const holiday = c.holiday ? `${c.holiday.localName} (${c.holiday.date})` : 'Holiday data unavailable';
+        const weather = c.weather ? `${c.weather.temp_c}°C, rain ${Math.round(c.weather.rain_probability * 100)}%` : 'Weather unavailable';
+        return `<p><span class="badge">${c.city}</span> Holiday: ${holiday} | Weather: ${weather}</p>`;
+      }).join('');
+    }
 
     function renderResults(data) {
+      renderContext(data.context || {});
+
       if (!data.recommendations || !data.recommendations.length) {
         resultsNode.innerHTML = '<p>No matching recommendations for this budget.</p>';
         return;
@@ -66,12 +113,49 @@
       resultsNode.innerHTML = data.recommendations.slice(0, 3).map((item, i) => `
         <div class="result">
           <h3>${i + 1}. ${item.trip.name} (${item.trip.city}, ${item.trip.country})</h3>
-          <p>Estimated total: €${item.trip.flight_cost + item.trip.hotel_cost + item.trip.local_cost}</p>
-          <p>Experience score: <strong>${item.experience_score}/100</strong></p>
+          <p>Estimated total: €${totalCost(item)} | Experience score: <strong>${item.experience_score}/100</strong></p>
+          <p>Flight €${item.trip.flight_cost} | Hotel €${item.trip.hotel_cost} | Local €${item.trip.local_cost}</p>
           <p>Save money: ${item.save_tips[0]}</p>
           <p>Spend for experience: ${item.splurge_tips[0]}</p>
         </div>
       `).join('');
+    }
+
+    async function refreshDrafts() {
+      const response = await fetch('/api/drafts');
+      const payload = await response.json();
+      const drafts = payload.drafts || [];
+      if (!drafts.length) {
+        draftsListNode.innerHTML = '<li>No drafts saved yet.</li>';
+        return;
+      }
+
+      draftsListNode.innerHTML = drafts.map((draft) => `
+        <li>
+          <button class="secondary" onclick="loadDraft(${draft.id})">
+            #${draft.id} - ${draft.input.home_airport || 'N/A'} - €${draft.input.budget_eur || '?'} - ${draft.input.style || 'balanced'}
+          </button>
+        </li>
+      `).join('');
+    }
+
+    async function loadDraft(draftId) {
+      statusNode.textContent = `Loading recommendations for draft ${draftId}...`;
+      const recRes = await fetch(`/api/recommendations/${draftId}`);
+      const recPayload = await recRes.json();
+      if (recPayload.error) {
+        statusNode.textContent = `No recommendation found for draft ${draftId}. Generating now...`;
+        const generateRes = await fetch('/api/recommendations/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ draft_id: draftId }),
+        });
+        const generated = await generateRes.json();
+        renderResults(generated);
+      } else {
+        renderResults(recPayload);
+      }
+      statusNode.textContent = `Loaded draft ${draftId}.`;
     }
 
     document.getElementById('generate').addEventListener('click', async () => {
@@ -101,7 +185,12 @@
 
       statusNode.textContent = `Done. Loaded recommendations for draft ${draft.draft_id}.`;
       renderResults(recommendations);
+      await refreshDrafts();
     });
+
+    document.getElementById('refreshDrafts').addEventListener('click', refreshDrafts);
+    window.loadDraft = loadDraft;
+    refreshDrafts();
   </script>
 </body>
 </html>
