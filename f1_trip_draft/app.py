@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
-from typing import Dict, List
+from typing import List, Dict
 
 
 @dataclass
@@ -65,28 +65,10 @@ def rating_quality(hotel_rating: float) -> float:
 
 def style_weights(style: str) -> Dict[str, float]:
     if style == "budget":
-        return {
-            "value": 0.35,
-            "f1": 0.2,
-            "weather": 0.15,
-            "convenience": 0.15,
-            "rating": 0.15,
-        }
+        return {"value": 0.35, "f1": 0.2, "weather": 0.15, "convenience": 0.15, "rating": 0.15}
     if style == "premium":
-        return {
-            "value": 0.15,
-            "f1": 0.35,
-            "weather": 0.15,
-            "convenience": 0.15,
-            "rating": 0.2,
-        }
-    return {
-        "value": 0.25,
-        "f1": 0.25,
-        "weather": 0.2,
-        "convenience": 0.15,
-        "rating": 0.15,
-    }
+        return {"value": 0.15, "f1": 0.35, "weather": 0.15, "convenience": 0.15, "rating": 0.2}
+    return {"value": 0.25, "f1": 0.25, "weather": 0.2, "convenience": 0.15, "rating": 0.15}
 
 
 def recommend_trips(user: UserPreferences, trips: List[TripCandidate]) -> List[Dict]:
@@ -95,21 +77,14 @@ def recommend_trips(user: UserPreferences, trips: List[TripCandidate]) -> List[D
 
     for trip in trips:
         if trip.total_cost > user.budget_eur * 1.25:
+            # skip aggressively over-budget options for a cleaner draft output
             continue
 
         scores = {
             "value": value_score(trip.total_cost, trip.f1_experience_points),
             "f1": min(100.0, float(trip.f1_experience_points)),
-            "weather": weather_fit(
-                user.weather_preference,
-                trip.avg_temp_c,
-                trip.rain_probability,
-            ),
-            "convenience": convenience_score(
-                trip.flight_hours,
-                trip.transfer_minutes,
-                trip.holiday_days,
-            ),
+            "weather": weather_fit(user.weather_preference, trip.avg_temp_c, trip.rain_probability),
+            "convenience": convenience_score(trip.flight_hours, trip.transfer_minutes, trip.holiday_days),
             "rating": rating_quality(trip.hotel_rating),
         }
 
@@ -127,12 +102,12 @@ def recommend_trips(user: UserPreferences, trips: List[TripCandidate]) -> List[D
                 "scores": scores,
                 "experience_score": round(weighted_total, 2),
                 "save_tips": [
-                    "Fly mid-week and arrive Thursday to reduce race-week fare spikes.",
-                    "Stay 3-7 km from circuit and use train/metro instead of event-zone hotels.",
+                    "Book flight mid-week and arrive Thursday to cut fare spikes.",
+                    "Choose hotels 3-7 km from circuit with public transport access.",
                 ],
                 "splurge_tips": [
-                    "Spend extra on race-day grandstand quality for the highest experience jump.",
-                    "Choose one premium F1 add-on: paddock-style tour, simulator, or track walk.",
+                    "Upgrade race-day seat (best ROI for core F1 experience).",
+                    "Book one premium activity: simulator, paddock tour, or track walk.",
                 ],
             }
         )
@@ -194,81 +169,30 @@ def sample_data() -> List[TripCandidate]:
     ]
 
 
-def ask_choice(label: str, allowed: List[str], default: str) -> str:
-    prompt = f"{label} ({'/'.join(allowed)}) [default: {default}]: "
-    value = input(prompt).strip().lower()
-    if value == "":
-        return default
-    if value in allowed:
-        return value
-    print(f"Invalid choice. Using default '{default}'.")
-    return default
-
-
-def ask_int(label: str, default: int) -> int:
-    raw = input(f"{label} [default: {default}]: ").strip()
-    if raw == "":
-        return default
-    try:
-        parsed = int(raw)
-        if parsed <= 0:
-            print("Value must be positive. Using default.")
-            return default
-        return parsed
-    except ValueError:
-        print("Invalid number. Using default.")
-        return default
-
-
-def build_user_preferences_interactive() -> UserPreferences:
-    print("\nWelcome to the F1 Travel Tracker draft!\n")
-    print("Answer 4 quick questions (press Enter anytime to use defaults).\n")
-
-    home_airport = input("Home airport code (example: LHR) [default: LHR]: ").strip().upper() or "LHR"
-    budget_eur = ask_int("Total budget in EUR", 1200)
-    style = ask_choice("Travel style", ["budget", "balanced", "premium"], "balanced")
-    weather = ask_choice("Weather preference", ["cool", "warm", "mixed"], "mixed")
-
-    return UserPreferences(
-        home_airport=home_airport,
-        budget_eur=budget_eur,
-        style=style,
-        weather_preference=weather,
-    )
-
-
-def print_recommendations(user: UserPreferences, recos: List[Dict]) -> None:
-    print("\n--- Your Profile ---")
-    print(
-        f"Home airport: {user.home_airport} | Budget: €{user.budget_eur} | "
-        f"Style: {user.style} | Weather: {user.weather_preference}"
-    )
-
-    if not recos:
-        print("\nNo matching trips found in sample data for this budget.")
-        print("Try increasing budget or changing style to 'budget'.")
-        return
-
-    print("\n--- Top F1-themed trip recommendations ---\n")
+def print_recommendations(recos: List[Dict]) -> None:
+    print("Top F1-themed trip recommendations\n")
     for idx, item in enumerate(recos[:3], start=1):
         trip = item["trip"]
         print(f"{idx}. {trip.name} ({trip.city}, {trip.country})")
-        print(f"   Estimated total cost: €{trip.total_cost}")
-        print(f"   Experience score: {item['experience_score']}/100")
-        print(f"   Hotel rating: {trip.hotel_rating}/5 | Flight time: {trip.flight_hours}h")
+        print(f"   Total cost: €{trip.total_cost} | Experience score: {item['experience_score']}")
         print(
-            f"   Subscores -> Value {item['scores']['value']:.1f}, "
-            f"F1 {item['scores']['f1']:.1f}, Weather {item['scores']['weather']:.1f}, "
-            f"Convenience {item['scores']['convenience']:.1f}, Rating {item['scores']['rating']:.1f}"
+            f"   Subscores -> Value: {item['scores']['value']:.1f}, "
+            f"F1: {item['scores']['f1']:.1f}, Weather: {item['scores']['weather']:.1f}, "
+            f"Convenience: {item['scores']['convenience']:.1f}, Rating: {item['scores']['rating']:.1f}"
         )
-        print(f"   Save money: {item['save_tips'][0]}")
-        print(f"   Spend for experience: {item['splurge_tips'][0]}\n")
+        print(f"   Save: {item['save_tips'][0]}")
+        print(f"   Splurge: {item['splurge_tips'][0]}\n")
 
 
 def main() -> None:
-    user = build_user_preferences_interactive()
+    user = UserPreferences(
+        home_airport="LHR",
+        budget_eur=1200,
+        style="balanced",
+        weather_preference="mixed",
+    )
     recommendations = recommend_trips(user, sample_data())
-    print_recommendations(user, recommendations)
+    print_recommendations(recommendations)
 
 
 if __name__ == "__main__":
