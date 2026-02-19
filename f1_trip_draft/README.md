@@ -1,67 +1,56 @@
-# F1 Travel Tracker (Draft MVP)
+# F1 Travel Tracker (Website + Backend Draft)
 
-If you are completely new, start here 👇
+This draft now includes:
+- a simple **website frontend**,
+- a **Python backend**,
+- a **database** that stores user input drafts and recommendation snapshots.
 
-## Quick start (3 steps)
-
-1. Open terminal in this repo.
-2. Run:
+## 1) Run the website
 
 ```bash
-python3 f1_trip_draft/app.py
+python3 f1_trip_draft/webapp.py
 ```
 
-3. Answer the questions (or just press `Enter` to use defaults).
+Then open: `http://localhost:8765`
 
-That is it. The script will print your top F1-themed trip options.
+## 2) How to use
 
-## What the app asks you
+1. Fill in your profile (airport, budget, style, weather).
+2. Click **Save Draft + Generate**.
+3. The app will:
+   - save your input in the database as a draft,
+   - generate F1 trip recommendations,
+   - show the ranked results on the page.
 
-- **Home airport code** (example: `LHR`)
-- **Budget in EUR** (example: `1200`)
-- **Travel style**
-  - `budget` = save more money
-  - `balanced` = mix of value + experience
-  - `premium` = prioritize best F1 experience
-- **Weather preference**
-  - `cool`, `warm`, or `mixed`
+## 3) Database behavior (draft copy)
 
-## Understanding output
+Database file: `f1_trip_draft/f1_tracker.db`
 
-For each recommendation, you will see:
+Stored tables:
+- `trip_drafts`: user-entered draft profile data
+- `recommendations`: generated recommendation snapshots by draft
 
-- estimated total cost,
-- overall experience score,
-- sub-scores (value, F1, weather, convenience, hotel rating),
-- one **save money** tip,
-- one **spend for experience** tip.
+This supports your requirement to keep user data and draft copies.
 
-## What is implemented in this draft
+## 4) Project files
 
-1. Interactive CLI onboarding for beginners.
-2. Recommendation scoring engine in `app.py`.
-3. Weighted ranking for `budget` / `balanced` / `premium` styles.
-4. Sample trip candidates: Monza, Suzuka, Barcelona.
-5. Cost-aware filtering for highly over-budget trips.
+- `f1_trip_draft/webapp.py` — HTTP server + API endpoints + SQLite storage
+- `f1_trip_draft/web/index.html` — website frontend UI
+- `f1_trip_draft/app.py` — core recommendation logic (scoring/ranking)
 
-## Scoring model
+## 5) API endpoints
 
-`Total = Value*w1 + F1Experience*w2 + WeatherFit*w3 + Convenience*w4 + Rating*w5`
+- `POST /api/drafts` - save draft input
+- `GET /api/drafts/{id}` - fetch saved draft
+- `POST /api/recommendations/generate` - generate recommendations for a draft
+- `GET /api/recommendations/{draft_id}` - fetch latest recommendations for a draft
 
-Weight examples:
+## 6) About Python + C++
 
-- **budget**: higher value weight.
-- **balanced**: value and experience equally weighted.
-- **premium**: higher F1 and quality weight.
+Current draft uses Python end-to-end.
 
-## Current limitation
+Planned C++ usage (next step):
+- move only heavy ranking/optimization loops to C++ for performance,
+- keep APIs, database, and orchestration in Python.
 
-This is a **draft** with sample data (not live API data yet).
-
-## Next steps (production version)
-
-- Connect public holiday APIs.
-- Connect weather + flight + hotel APIs.
-- Add web UI (FastAPI + frontend).
-- Add alerts for price drops and best booking window.
-- Add account storage in PostgreSQL.
+This keeps development simple now and still allows high-performance scaling later.
