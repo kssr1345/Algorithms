@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PlanWise Travel Planner</title>
+  <style>
+    :root {
+      --bg: #f3f6fb;
+      --card: #ffffff;
+      --text: #1f2a37;
+      --muted: #5b6b82;
+      --primary: #2f6fed;
+      --primary-soft: #e9f0ff;
+      --border: #d9e2ef;
+      --success: #1f9d63;
+      --warning: #b7791f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.45;
+    }
+    .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    .hero {
+      background: linear-gradient(130deg, #f8fbff 0%, #eef4ff 100%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .hero h1 { margin: 0 0 8px; font-size: 30px; }
+    .hero p { margin: 0; color: var(--muted); max-width: 780px; }
+    .grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px; }
+    .full { grid-column: 1 / -1; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 4px 14px rgba(16, 24, 40, 0.04);
+    }
+    .card h2 { margin-top: 0; margin-bottom: 10px; font-size: 20px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    label { display: block; margin: 8px 0 4px; color: var(--muted); font-size: 14px; }
+    input, select, button {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      padding: 10px;
+      background: #fff;
+      color: var(--text);
+    }
+    input:focus, select:focus, button:focus {
+      outline: 2px solid #bfd3ff;
+      outline-offset: 1px;
+    }
+    button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button.secondary {
+      background: #eff4ff;
+      color: #274d9b;
+      border: 1px solid #c8d7ff;
+    }
+    .status, .mini { color: var(--muted); font-size: 13px; }
+    .pill {
+      display: inline-block;
+      padding: 4px 9px;
+      border-radius: 999px;
+      margin: 0 6px 6px 0;
+      font-size: 12px;
+      border: 1px solid var(--border);
+      background: #f8fbff;
+    }
+    .pill.good { color: var(--success); border-color: #bae5d0; background: #effaf4; }
+    .pill.warn { color: var(--warning); border-color: #f3d9b1; background: #fff9ef; }
+    .result {
+      border: 1px solid var(--border);
+      background: #fbfdff;
+      border-radius: 12px;
+      padding: 12px;
+      margin: 10px 0;
+    }
+    .result h3 { margin-top: 0; margin-bottom: 6px; font-size: 18px; }
+    .list-item { padding: 6px 0; border-bottom: 1px dashed #e4ebf4; }
+    .list-item:last-child { border-bottom: none; }
+    @media (max-width: 920px) { .grid, .row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <h1>PlanWise Travel Planner</h1>
+      <p>Build travel drafts, compare destination recommendations, and monitor live holiday/weather/FX data quality in one place.</p>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Create travel draft</h2>
+        <div class="row">
+          <div>
+            <label>Home airport code</label>
+            <input id="home_airport" list="airports" value="LHR" />
+            <datalist id="airports"></datalist>
+          </div>
+          <div>
+            <label>Budget amount</label>
+            <input id="budget_amount" type="number" value="1200" />
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Budget currency</label>
+            <select id="currency"></select>
+          </div>
+          <div>
+            <label>Travel style</label>
+            <select id="style"><option>budget</option><option selected>balanced</option><option>premium</option></select>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Weather preference</label>
+            <select id="weather_preference"><option>cool</option><option selected>mixed</option><option>warm</option></select>
+          </div>
+          <div></div>
+        </div>
+        <button id="generate">Save draft & generate recommendations</button>
+        <div id="status" class="status"></div>
+      </div>
+
+      <div class="card">
+        <h2>Supported destinations</h2>
+        <div id="places" class="mini">Loading places...</div>
+      </div>
+
+      <div class="card full">
+        <h2>Live data quality</h2>
+        <div id="liveStatus" class="mini">No run yet.</div>
+        <div id="context" class="mini" style="margin-top:8px;"></div>
+      </div>
+
+      <div class="card full">
+        <h2>Recommendations</h2>
+        <div id="results" class="mini">No recommendations yet.</div>
+      </div>
+
+      <div class="card full">
+        <h2>Saved drafts</h2>
+        <button id="refreshDrafts" class="secondary">Refresh drafts</button>
+        <div id="draftsList" class="mini">No drafts yet.</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const statusNode=document.getElementById('status');
+const resultsNode=document.getElementById('results');
+const draftsListNode=document.getElementById('draftsList');
+const contextNode=document.getElementById('context');
+const liveStatusNode=document.getElementById('liveStatus');
+const placesNode=document.getElementById('places');
+
+function fmt(v){return Math.round(v*100)/100}
+function toDisplay(totalEur,bctx){const rate=bctx?.rate_to_eur||1;const cur=bctx?.input_budget?.currency||'EUR';return `${fmt(totalEur/rate)} ${cur}`}
+function pill(ok,label){return `<span class='pill ${ok ? 'good':'warn'}'>${label}</span>`}
+
+function renderContext(ctx){
+  const b=ctx?.budget_context||{};const s=ctx?.live_data_summary||{};
+  liveStatusNode.innerHTML = [
+    pill(Boolean(b.fx_live), b.fx_live ? 'FX live' : 'FX fallback'),
+    `<span class='pill'>Budget normalized: €${b.budget_eur||'-'}</span>`,
+    pill((s.holiday_live_cities||0) > 0, `${s.holiday_live_cities||0}/${s.total_cities||0} holiday live`),
+    pill((s.weather_live_cities||0) > 0, `${s.weather_live_cities||0}/${s.total_cities||0} weather live`)
+  ].join(' ');
+  const cities=ctx.city_context||[];
+  contextNode.innerHTML=cities.map(c=>`<div class='list-item'>${c.city} (${c.airport||'N/A'}) • holiday: ${c.holiday_live?'live':'fallback'} • weather: ${c.weather_live?'live':'fallback'}</div>`).join('');
+}
+
+function renderResults(data){
+  renderContext(data.context||{});
+  const bctx=data.context?.budget_context||{};
+  const recs=data.recommendations||[];
+  if(!recs.length){resultsNode.innerHTML='No matching recommendations.';return;}
+  resultsNode.innerHTML=recs.slice(0,3).map((item,i)=>{
+    const totalEur=item.trip.flight_cost+item.trip.hotel_cost+item.trip.local_cost;
+    return `<div class='result'><h3>${i+1}. ${item.trip.name} (${item.trip.city})</h3><div>Total: ${toDisplay(totalEur,bctx)} (≈ €${totalEur}) • Score ${item.experience_score}/100</div><div class='mini'>Flight ${toDisplay(item.trip.flight_cost,bctx)}, Hotel ${toDisplay(item.trip.hotel_cost,bctx)}, Local ${toDisplay(item.trip.local_cost,bctx)}</div><p>Save: ${item.save_tips[0]}</p><p>Splurge: ${item.splurge_tips[0]}</p></div>`;
+  }).join('');
+}
+
+async function loadMetadata(){
+  const res=await fetch('/api/metadata'); const m=await res.json();
+  document.getElementById('airports').innerHTML=(m.airports||[]).map(a=>`<option value='${a.code}'>${a.code} - ${a.name}</option>`).join('');
+  document.getElementById('currency').innerHTML=(m.currencies||[]).map(c=>`<option value='${c}' ${c==='EUR'?'selected':''}>${c}</option>`).join('');
+  placesNode.innerHTML=(m.places||[]).map(p=>`<div class='list-item'><strong>${p.name}</strong> — ${p.city}, ${p.country} (airport ${p.airport||'N/A'})</div>`).join('');
+}
+
+async function refreshDrafts(){
+  const res=await fetch('/api/drafts'); const data=await res.json(); const drafts=data.drafts||[];
+  if(!drafts.length){draftsListNode.textContent='No drafts saved yet.';return;}
+  draftsListNode.innerHTML=drafts.map(d=>`<button class='secondary' onclick='loadDraft(${d.id})'>#${d.id} • ${d.input.home_airport||'N/A'} • ${d.input.budget_amount||d.input.budget_eur||'?'} ${d.input.currency||'EUR'}</button>`).join('');
+}
+
+async function loadDraft(id){
+  statusNode.textContent=`Loading draft ${id}...`;
+  let res=await fetch(`/api/recommendations/${id}`); let data=await res.json();
+  if(data.error){
+    res=await fetch('/api/recommendations/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({draft_id:id})});
+    data=await res.json();
+  }
+  renderResults(data); statusNode.textContent=`Loaded draft ${id}.`;
+}
+
+document.getElementById('generate').addEventListener('click',async()=>{
+  statusNode.textContent='Saving draft and generating...';
+  const payload={
+    home_airport:document.getElementById('home_airport').value,
+    budget_amount:Number(document.getElementById('budget_amount').value),
+    currency:document.getElementById('currency').value,
+    style:document.getElementById('style').value,
+    weather_preference:document.getElementById('weather_preference').value,
+  };
+  const dres=await fetch('/api/drafts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const d=await dres.json();
+  const rres=await fetch('/api/recommendations/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({draft_id:d.draft_id})});
+  const rec=await rres.json();
+  renderResults(rec); statusNode.textContent=`Done. Draft #${d.draft_id} saved.`;
+  await refreshDrafts();
+});
+
+document.getElementById('refreshDrafts').addEventListener('click',refreshDrafts);
+window.loadDraft=loadDraft;
+loadMetadata(); refreshDrafts();
+</script>
+</body>
+</html>
