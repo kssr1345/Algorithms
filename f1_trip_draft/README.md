@@ -1,32 +1,44 @@
-# PlanWise Travel Planner
+# F1 Travel Tracker (Draft MVP)
 
-`PlanWise Travel Planner` is the new product name.
+This is a draft prototype for an app that recommends F1-themed trips by combining:
 
-## What's improved
-- Removed race/F1 visual branding and redesigned with a clean, neutral travel-planning UI.
-- Added clear visual hierarchy, spacing, readable typography, and accessibility-focused color contrast.
-- Kept airport/place listing and multi-currency budget support.
+- public holiday windows,
+- month + weather suitability,
+- flight + hotel costs,
+- and budget strategy guidance (save vs splurge).
 
-## Core capabilities
-- `GET /api/metadata` returns:
-  - supported airports
-  - destination places
-  - supported currencies
-- Multi-currency budget input (`budget_amount` + `currency`) with EUR normalization for internal scoring.
-- Live data integrations:
-  - Holidays: `date.nager.at`
-  - Weather: `open-meteo.com`
-  - FX: `frankfurter.app`
+## What is implemented in this draft
 
-## Run
+1. **Recommendation scoring engine** in `app.py`.
+2. **Weighted ranking** for budget/balanced/premium traveler profiles.
+3. **Sample trip candidates** for Monza, Suzuka, and Barcelona.
+4. **Cost-aware filtering** that avoids strongly over-budget recommendations.
+5. **Actionable save/splurge tips** attached to each recommendation.
+
+## Scoring model
+
+For each candidate trip:
+
+`Total = Value*w1 + F1Experience*w2 + WeatherFit*w3 + Convenience*w4 + Rating*w5`
+
+Where weights depend on user style:
+
+- **budget**: prioritize value,
+- **balanced**: equal value and experience,
+- **premium**: prioritize F1 experience + rating.
+
+## Run locally
+
 ```bash
-python3 f1_trip_draft/webapp.py
+python3 f1_trip_draft/app.py
 ```
-Open: `http://localhost:8765`
 
-## APIs
-- `GET /api/metadata`
-- `POST /api/drafts`
-- `GET /api/drafts`
-- `POST /api/recommendations/generate`
-- `GET /api/recommendations/{draft_id}`
+Expected output: top-ranked recommendations with total cost, experience score, subscores, and one save/splurge suggestion.
+
+## Next steps to turn draft into full app
+
+- Integrate real APIs for holiday calendar, weather, flights, and hotels.
+- Add an HTTP API (e.g., FastAPI) and frontend dashboard.
+- Implement price tracking alerts and booking-window recommendations.
+- Add explainability endpoint: "Why this trip is ranked #1".
+- Add user accounts and persistence (PostgreSQL).
