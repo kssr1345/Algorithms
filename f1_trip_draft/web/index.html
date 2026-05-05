@@ -3,81 +3,79 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PlanWise F1 Weekend Planner</title>
+  <title>F1 Travel Tracker</title>
   <style>
-    :root {
-      --bg: #06080f;
-      --panel: #0f1322;
-      --panel-2: #141a2d;
-      --text: #f3f6ff;
-      --muted: #9aa8c7;
-      --accent: #ff2330;
-      --accent-2: #2737ff;
-      --border: #232b45;
-      --ok: #39d98a;
-      --warn: #f6c344;
-    }
+    :root { --bg:#0b1020; --panel:#121b34; --panel2:#1a2748; --text:#e8efff; --muted:#9bb0df; --accent:#ff4747; --ok:#22c55e; }
     * { box-sizing: border-box; }
-    body { margin:0; font-family: Inter, Segoe UI, Arial, sans-serif; color:var(--text); background: radial-gradient(circle at top, #121a31, var(--bg) 55%); }
-    .container { max-width: 1180px; margin: 0 auto; padding: 24px; }
-    .hero { border:1px solid var(--border); border-radius:16px; padding:24px; background: linear-gradient(135deg, rgba(255,35,48,.12), rgba(39,55,255,.1)); }
-    .hero h1 { margin:0; font-size:32px; letter-spacing:.3px; }
-    .hero p { margin:10px 0 0; color:var(--muted); }
-    .grid { display:grid; grid-template-columns:1.25fr 1fr; gap:14px; margin-top:14px; }
+    body { font-family: Inter, Arial, sans-serif; margin:0; color:var(--text); background: radial-gradient(circle at 10% 0%, #1b2452 0%, var(--bg) 45%); }
+    .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    .hero { background: linear-gradient(135deg, #1e2a55, #10182f); border:1px solid #2c3f74; border-radius:16px; padding:20px; margin-bottom:16px; }
+    .hero h1 { margin:0 0 8px; font-size: 30px; }
+    .hero p { margin:0; color:var(--muted); }
+    .grid { display:grid; grid-template-columns:1.2fr 1fr; gap:14px; }
+    .card { background:linear-gradient(180deg, var(--panel), var(--panel2)); border:1px solid #2c3f74; border-radius:14px; padding:16px; box-shadow:0 8px 24px rgba(0,0,0,.25); }
     .full { grid-column:1 / -1; }
-    .card { background: linear-gradient(180deg, var(--panel), var(--panel-2)); border:1px solid var(--border); border-radius:14px; padding:16px; box-shadow:0 10px 35px rgba(0,0,0,.25); }
-    .card h2 { margin-top:0; font-size:20px; }
     .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    label { display:block; font-size:13px; color:var(--muted); margin:8px 0 4px; }
-    input, select, button { width:100%; border-radius:10px; border:1px solid var(--border); background:#0a0e1a; color:var(--text); padding:10px; }
-    button { border:none; cursor:pointer; font-weight:700; background: linear-gradient(135deg, var(--accent), #ca1827); }
-    button.secondary { background:#1f2740; border:1px solid #394262; }
-    .pill { display:inline-block; padding:4px 9px; margin:0 6px 6px 0; border-radius:999px; border:1px solid var(--border); font-size:12px; }
-    .pill.good { border-color:#20593d; color:var(--ok); background:#102318; }
-    .pill.warn { border-color:#6f5f25; color:var(--warn); background:#2a2411; }
+    h2 { margin:0 0 10px; font-size:20px; }
+    label { display:block; margin:8px 0 4px; color:var(--muted); }
+    input, select, button { width:100%; padding:10px; border-radius:10px; border:1px solid #3a4f86; background:#0f1a33; color:var(--text); }
+    button { background: linear-gradient(135deg, #ff5c5c, var(--accent)); border:none; cursor:pointer; font-weight:700; }
+    button:hover { transform: translateY(-1px); }
+    button.secondary { background:#22345f; }
+    .status { margin-top:8px; color:var(--muted); }
+    .pill { display:inline-block; padding:4px 10px; border-radius:999px; font-size:12px; margin-right:6px; background:#22345f; }
+    .pill.ok { background: rgba(34,197,94,.2); color:#93f9b3; border:1px solid rgba(34,197,94,.45); }
+    .pill.warn { background: rgba(255,200,0,.15); color:#fde68a; border:1px solid rgba(255,200,0,.4); }
+    .drafts button { margin-bottom:8px; text-align:left; }
+    .result { padding:12px; margin:10px 0; background:#0f1b37; border-radius:10px; border-left:4px solid var(--accent); }
     .mini { color:var(--muted); font-size:13px; }
-    .result { background:#0a0f1c; border:1px solid #2d3554; border-left:4px solid var(--accent); border-radius:10px; padding:12px; margin:10px 0; }
-    .result h3 { margin:0 0 6px; }
-    .list-item { border-bottom:1px dashed #2f395a; padding:6px 0; }
-    .list-item:last-child { border-bottom:none; }
-    .race-box { border:1px solid #3d486f; border-radius:12px; padding:12px; background: linear-gradient(135deg, rgba(39,55,255,.16), rgba(255,35,48,.16)); }
-    @media (max-width:930px){ .grid, .row { grid-template-columns:1fr; } }
+    .loading { animation: pulse 1.2s infinite; }
+    @keyframes pulse { 0%{opacity:.6;} 50%{opacity:1;} 100%{opacity:.6;} }
+    @media (max-width: 900px) { .grid, .row { grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="hero">
-      <h1>PlanWise F1 Weekend Planner</h1>
-      <p>Dark Formula-1 inspired travel planner. Build race-trip drafts, track live F1 schedule signals, and optimize budget with real-time weather, holiday, and FX context.</p>
+      <h1>🏁 F1 Travel Tracker</h1>
+      <p>Interactive trip planner with draft saving + live holiday/weather enrichment.</p>
     </div>
 
     <div class="grid">
       <div class="card">
-        <h2>Build your race trip draft</h2>
+        <h2>Create trip draft</h2>
         <div class="row">
-          <div><label>Home airport</label><input id="home_airport" list="airports" value="LHR" /><datalist id="airports"></datalist></div>
-          <div><label>Budget amount</label><input id="budget_amount" type="number" value="2000" /></div>
+          <div>
+            <label>Home airport</label>
+            <input id="home_airport" value="LHR" />
+          </div>
+          <div>
+            <label>Budget (EUR)</label>
+            <input id="budget_eur" type="number" value="1200" />
+          </div>
         </div>
         <div class="row">
-          <div><label>Budget currency</label><select id="currency"></select></div>
-          <div><label>Travel style</label><select id="style"><option>budget</option><option selected>balanced</option><option>premium</option></select></div>
+          <div>
+            <label>Travel style</label>
+            <select id="style"><option>budget</option><option selected>balanced</option><option>premium</option></select>
+          </div>
+          <div>
+            <label>Weather preference</label>
+            <select id="weather_preference"><option>cool</option><option selected>mixed</option><option>warm</option></select>
+          </div>
         </div>
-        <div class="row">
-          <div><label>Weather preference</label><select id="weather_preference"><option>cool</option><option selected>mixed</option><option>warm</option></select></div>
-        </div>
-        <button id="generate">Generate F1-themed recommendations</button>
-        <div id="status" class="mini" style="margin-top:8px;"></div>
+        <button id="generate">Save Draft + Generate with Live Data</button>
+        <div id="status" class="status"></div>
       </div>
 
-      <div class="card">
-        <h2>Live F1 feed</h2>
-        <div id="nextRace" class="race-box mini">Loading next race…</div>
-        <h2 style="margin-top:14px;">Supported race destinations</h2>
-        <div id="places" class="mini">Loading…</div>
+      <div class="card drafts">
+        <h2>Saved drafts</h2>
+        <button id="refreshDrafts" class="secondary">Refresh drafts list</button>
+        <div id="draftsList" class="mini">No drafts yet.</div>
       </div>
 
       <div class="card full">
-        <h2>Live data quality</h2>
+        <h2>Live data status</h2>
         <div id="liveStatus" class="mini">No run yet.</div>
         <div id="context" class="mini" style="margin-top:8px;"></div>
       </div>
@@ -89,75 +87,98 @@
     </div>
   </div>
 
-<script>
-const statusNode=document.getElementById('status');
-const resultsNode=document.getElementById('results');
-const contextNode=document.getElementById('context');
-const liveStatusNode=document.getElementById('liveStatus');
-const placesNode=document.getElementById('places');
-const nextRaceNode=document.getElementById('nextRace');
+  <script>
+    const statusNode = document.getElementById('status');
+    const resultsNode = document.getElementById('results');
+    const draftsListNode = document.getElementById('draftsList');
+    const contextNode = document.getElementById('context');
+    const liveStatusNode = document.getElementById('liveStatus');
 
-function fmt(v){return Math.round(v*100)/100}
-function toDisplay(totalEur,bctx){const rate=bctx?.rate_to_eur||1;const cur=bctx?.input_budget?.currency||'EUR';return `${fmt(totalEur/rate)} ${cur}`}
-function pill(ok,label){return `<span class='pill ${ok ? 'good':'warn'}'>${label}</span>`}
+    const totalCost = (item) => item.trip.flight_cost + item.trip.hotel_cost + item.trip.local_cost;
 
-function renderRaceFeed(f1Live){
-  if(!f1Live){ nextRaceNode.textContent='F1 feed unavailable.'; return; }
-  const race=f1Live.next_race;
-  if(!race){ nextRaceNode.textContent='No next race payload available.'; return; }
-  nextRaceNode.innerHTML = `<strong>${race.raceName || 'Next Race'}</strong><br/>Round ${race.round || '?'} • ${race.date || 'TBD'} ${race.time || ''}<br/>${race.circuit || 'Circuit TBD'}, ${race.location?.locality || ''} ${race.location?.country || ''}<br/>Status: ${f1Live.live ? 'live feed' : 'fallback'}`;
-}
+    function livePill(ok, label) {
+      return `<span class="pill ${ok ? 'ok' : 'warn'}">${label}</span>`;
+    }
 
-function renderContext(ctx){
-  const b=ctx?.budget_context||{}; const s=ctx?.live_data_summary||{};
-  liveStatusNode.innerHTML=[
-    pill(Boolean(b.fx_live), b.fx_live ? 'FX live' : 'FX fallback'),
-    `<span class='pill'>Budget normalized: €${b.budget_eur||'-'}</span>`,
-    pill((s.holiday_live_cities||0)>0,`${s.holiday_live_cities||0}/${s.total_cities||0} holiday live`),
-    pill((s.weather_live_cities||0)>0,`${s.weather_live_cities||0}/${s.total_cities||0} weather live`),
-    pill(Boolean(ctx?.f1_live?.live), ctx?.f1_live?.live ? 'F1 feed live':'F1 feed fallback')
-  ].join(' ');
-  contextNode.innerHTML=(ctx.city_context||[]).map(c=>`<div class='list-item'>${c.city} (${c.airport||'N/A'}) • holiday ${c.holiday_live?'live':'fallback'} • weather ${c.weather_live?'live':'fallback'}</div>`).join('');
-  renderRaceFeed(ctx?.f1_live);
-}
+    function renderContext(payload) {
+      const summary = payload?.live_data_summary;
+      const cityContext = payload?.city_context || [];
+      if (summary) {
+        const h = `${summary.holiday_live_cities}/${summary.total_cities} holiday live`;
+        const w = `${summary.weather_live_cities}/${summary.total_cities} weather live`;
+        liveStatusNode.innerHTML = `${livePill(summary.holiday_live_cities > 0, h)} ${livePill(summary.weather_live_cities > 0, w)} <span class="pill">Generated: ${new Date(summary.generated_at_utc).toLocaleString()}</span>`;
+      } else {
+        liveStatusNode.textContent = 'No live data summary available.';
+      }
 
-function renderResults(data){
-  renderContext(data.context||{});
-  const bctx=data.context?.budget_context||{};
-  const recs=data.recommendations||[];
-  if(!recs.length){resultsNode.innerHTML='No matching recommendations.';return;}
-  resultsNode.innerHTML=recs.slice(0,3).map((item,i)=>{
-    const total=item.trip.flight_cost+item.trip.hotel_cost+item.trip.local_cost;
-    return `<div class='result'><h3>${i+1}. ${item.trip.name} (${item.trip.city})</h3><div>Total ${toDisplay(total,bctx)} (≈ €${total}) • Experience ${item.experience_score}/100</div><div class='mini'>Flight ${toDisplay(item.trip.flight_cost,bctx)} | Hotel ${toDisplay(item.trip.hotel_cost,bctx)} | Local ${toDisplay(item.trip.local_cost,bctx)}</div><p>Save: ${item.save_tips[0]}</p><p>Splurge: ${item.splurge_tips[0]}</p></div>`;
-  }).join('');
-}
+      contextNode.innerHTML = cityContext.map((c) => {
+        const holiday = c.holiday ? `${c.holiday.localName} (${c.holiday.date})` : 'Holiday unavailable';
+        const weather = c.weather ? `${c.weather.temp_c}°C, rain ${Math.round(c.weather.rain_probability * 100)}%` : 'Weather unavailable';
+        return `<div style="margin-bottom:6px;">${livePill(c.holiday_live, c.city + ' holiday')} ${livePill(c.weather_live, c.city + ' weather')} ${holiday} | ${weather}</div>`;
+      }).join('');
+    }
 
-async function loadMetadata(){
-  const res=await fetch('/api/metadata'); const m=await res.json();
-  document.getElementById('airports').innerHTML=(m.airports||[]).map(a=>`<option value='${a.code}'>${a.code} - ${a.name}</option>`).join('');
-  document.getElementById('currency').innerHTML=(m.currencies||[]).map(c=>`<option value='${c}' ${c==='EUR'?'selected':''}>${c}</option>`).join('');
-  placesNode.innerHTML=(m.places||[]).map(p=>`<div class='list-item'><strong>${p.name}</strong> — ${p.city}, ${p.country} (${p.airport||'N/A'})</div>`).join('');
-  renderRaceFeed(m?.f1_live);
-}
+    function renderResults(data) {
+      renderContext(data.context || {});
+      const recs = data.recommendations || [];
+      if (!recs.length) {
+        resultsNode.innerHTML = '<p>No matching recommendations for this budget.</p>';
+        return;
+      }
+      resultsNode.innerHTML = recs.slice(0, 3).map((item, i) => `
+        <div class="result">
+          <h3>${i + 1}. ${item.trip.name} (${item.trip.city}, ${item.trip.country})</h3>
+          <div class="mini">Total €${totalCost(item)} • Experience ${item.experience_score}/100 • Flight €${item.trip.flight_cost} • Hotel €${item.trip.hotel_cost}</div>
+          <p>Save: ${item.save_tips[0]}</p>
+          <p>Splurge: ${item.splurge_tips[0]}</p>
+        </div>
+      `).join('');
+    }
 
-document.getElementById('generate').addEventListener('click', async()=>{
-  statusNode.textContent='Saving draft and loading live motorsport data...';
-  const payload={
-    home_airport:document.getElementById('home_airport').value,
-    budget_amount:Number(document.getElementById('budget_amount').value),
-    currency:document.getElementById('currency').value,
-    style:document.getElementById('style').value,
-    weather_preference:document.getElementById('weather_preference').value,
-  };
-  const dres=await fetch('/api/drafts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-  const d=await dres.json();
-  const rres=await fetch('/api/recommendations/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({draft_id:d.draft_id})});
-  const rec=await rres.json();
-  renderResults(rec);
-  statusNode.textContent=`Done. Draft #${d.draft_id} generated.`;
-});
+    async function refreshDrafts() {
+      const response = await fetch('/api/drafts');
+      const payload = await response.json();
+      const drafts = payload.drafts || [];
+      if (!drafts.length) {
+        draftsListNode.textContent = 'No drafts saved yet.';
+        return;
+      }
+      draftsListNode.innerHTML = drafts.map((d) => `<button class="secondary" onclick="loadDraft(${d.id})">#${d.id} • ${d.input.home_airport || 'N/A'} • €${d.input.budget_eur || '?'} • ${d.input.style || 'balanced'}</button>`).join('');
+    }
 
-loadMetadata();
-</script>
+    async function loadDraft(id) {
+      statusNode.textContent = `Loading draft ${id}...`;
+      let res = await fetch(`/api/recommendations/${id}`);
+      let payload = await res.json();
+      if (payload.error) {
+        statusNode.textContent = `No saved recommendation for #${id}. Generating now...`;
+        res = await fetch('/api/recommendations/generate', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ draft_id:id }) });
+        payload = await res.json();
+      }
+      renderResults(payload);
+      statusNode.textContent = `Loaded draft ${id}.`;
+    }
+
+    document.getElementById('generate').addEventListener('click', async () => {
+      statusNode.innerHTML = '<span class="loading">Saving draft + fetching live data...</span>';
+      const payload = {
+        home_airport: document.getElementById('home_airport').value,
+        budget_eur: Number(document.getElementById('budget_eur').value),
+        style: document.getElementById('style').value,
+        weather_preference: document.getElementById('weather_preference').value,
+      };
+      const draftRes = await fetch('/api/drafts', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+      const draft = await draftRes.json();
+      const recRes = await fetch('/api/recommendations/generate', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ draft_id:draft.draft_id }) });
+      const recData = await recRes.json();
+      renderResults(recData);
+      statusNode.textContent = `Done. Draft #${draft.draft_id} generated.`;
+      await refreshDrafts();
+    });
+
+    document.getElementById('refreshDrafts').addEventListener('click', refreshDrafts);
+    window.loadDraft = loadDraft;
+    refreshDrafts();
+  </script>
 </body>
 </html>
